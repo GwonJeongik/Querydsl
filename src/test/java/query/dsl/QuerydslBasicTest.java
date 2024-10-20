@@ -134,7 +134,7 @@ public class QuerydslBasicTest {
         em.persist(member6);
 
         //when
-        List<Member> results = query
+        List<Member> result = query
                 .selectFrom(member)
                 .orderBy(
                         member.age.desc(),
@@ -142,13 +142,39 @@ public class QuerydslBasicTest {
                 )
                 .fetch();
 
-        Member findMember5 = results.get(0);
-        Member findMember6 = results.get(1);
-        Member findMemberNull = results.get(2);
+        Member findMember5 = result.get(0);
+        Member findMember6 = result.get(1);
+        Member findMemberNull = result.get(2);
 
         //then
         assertThat(findMember5.getName()).isEqualTo("member5");
         assertThat(findMember6.getName()).isEqualTo("member6");
         assertThat(findMemberNull.getName()).isNull();
+    }
+
+    @Test
+    void paging() {
+        //when
+        List<Member> result = query
+                .selectFrom(member)
+                .orderBy(member.name.desc())
+                .offset(1)
+                .limit(2)
+                .fetch();
+
+        //then
+        assertThat(result.size()).isEqualTo(2);
+    }
+
+    @Test
+    void pagingTotalCount() {
+        //when
+        Long totalCount = query
+                .select(member.count())
+                .from(member)
+                .fetchOne();
+
+        //then
+        assertThat(totalCount).isEqualTo(4);
     }
 }
