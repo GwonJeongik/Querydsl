@@ -172,9 +172,10 @@ public class QuerydslBasicTest {
         Long totalCount = query
                 .select(member.count())
                 .from(member)
+                .where(member.age.lt(30))
                 .fetchOne();
 
         //then
-        assertThat(totalCount).isEqualTo(4);
+        assertThat(totalCount).isEqualTo(2);
     }
 }
