@@ -68,4 +68,22 @@ public class QuerydslBasicTest {
         //then
         assertThat(findMember.getName()).isEqualTo("member1");
     }
+
+    @Test
+    @DisplayName(value = "Querydsl 검색 조건 설정!")
+    void search() {
+        //when
+        Member findMember = query
+                .selectFrom(member)
+                .where(
+                        member.name.eq("member1"),
+                        member.age.eq(10)
+                )
+                .fetchOne();
+
+        //then
+        assertThat(findMember.getName()).isEqualTo("member1");
+        assertThat(findMember.getAge()).isEqualTo(10);
+    }
+
 }
