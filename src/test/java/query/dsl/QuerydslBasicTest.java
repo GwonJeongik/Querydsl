@@ -9,10 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import query.dsl.entity.Member;
-import query.dsl.entity.QMember;
 import query.dsl.entity.Team;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static query.dsl.entity.QMember.member;
 
 @SpringBootTest
 @Transactional
@@ -59,12 +59,10 @@ public class QuerydslBasicTest {
     @Test
     @DisplayName(value = "Querydsl로 특정 회원을 찾아라!")
     void startQuerydsl() {
-        //given
-        QMember m = QMember.member;
-
         //when
-        Member findMember = query.selectFrom(m)
-                .where(m.name.eq("member1")) //파라미터 바인딩 처리
+        Member findMember = query
+                .selectFrom(member)
+                .where(member.name.eq("member1")) //파라미터 바인딩 처리
                 .fetchOne();
 
         //then
