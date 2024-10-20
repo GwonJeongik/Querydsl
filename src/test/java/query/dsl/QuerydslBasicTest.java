@@ -3,7 +3,6 @@ package query.dsl;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import org.hibernate.dialect.TiDBDialect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -118,4 +117,38 @@ public class QuerydslBasicTest {
                 .fetchCount();
     }
 
+    /**
+     * 1. 나이로 내림차순 정렬
+     * 2. 이름으로 올림차순 정렬
+     * 3. 2 에서 회원 이름이 없으면 마지막에 출력(nulls last)
+     */
+    @Test
+    void sort() {
+        //given
+        Member memberNull = new Member(null, 100);
+        Member member5 = new Member("member5", 100);
+        Member member6 = new Member("member6", 100);
+
+        em.persist(memberNull);
+        em.persist(member5);
+        em.persist(member6);
+
+        //when
+        List<Member> results = query
+                .selectFrom(member)
+                .orderBy(
+                        member.age.desc(),
+                        member.name.asc().nullsLast()
+                )
+                .fetch();
+
+        Member findMember5 = results.get(0);
+        Member findMember6 = results.get(1);
+        Member findMemberNull = results.get(2);
+
+        //then
+        assertThat(findMember5.getName()).isEqualTo("member5");
+        assertThat(findMember6.getName()).isEqualTo("member6");
+        assertThat(findMemberNull.getName()).isNull();
+    }
 }
