@@ -9,7 +9,7 @@ import lombok.ToString;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@ToString(of = {"id", "memberName", "age"})
+@ToString(of = {"id", "name", "age"})
 public class Member {
 
     @Id
