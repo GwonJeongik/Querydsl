@@ -4,6 +4,8 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -319,4 +321,45 @@ public class QuerydslBasicTest {
         }
     }
 
+    @PersistenceUnit
+    EntityManagerFactory emf;
+
+    @Test
+    void fetch_join_no() {
+        //given
+        System.out.println("========================");
+        em.flush();
+        em.clear();
+        System.out.println("========================");
+
+        //when
+        Member findMember = query
+                .selectFrom(member)
+                .where(member.name.eq("member1"))
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+
+        //then
+        assertThat(loaded).as("패치 조인 적용").isFalse();
+    }
+
+    @Test
+    void fetch_join() {
+        //given
+        em.flush();
+        em.clear();
+
+        //when
+        Member findMember = query
+                .selectFrom(member)
+                .join(member.team, team).fetchJoin()
+                .where(member.name.eq("member1"))
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember);
+
+        //then
+        assertThat(loaded).as("패치 조인 적용").isTrue();
+    }
 }
