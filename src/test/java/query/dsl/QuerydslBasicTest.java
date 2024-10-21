@@ -2,6 +2,8 @@ package query.dsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -19,7 +21,6 @@ import query.dsl.entity.Team;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static query.dsl.entity.QMember.member;
 import static query.dsl.entity.QTeam.team;
@@ -458,6 +459,62 @@ public class QuerydslBasicTest {
         //then
         for (Tuple tuple : result) {
             System.out.println("tuple = " + tuple);
+        }
+    }
+
+    @Test
+    void simpleCase() {
+        //when
+        List<String> result = query
+                .select(member.age
+                        .when(10).then("열 살")
+                        .when(20).then("스무 살")
+                        .otherwise("기타")
+                )
+                .from(member)
+                .fetch();
+
+        //then
+        assertThat(result).containsExactly("열 살", "스무 살", "기타", "기타");
+    }
+
+    @Test
+    void complexCase() {
+        //when
+        List<String> result = query
+                .select(new CaseBuilder()
+                        .when(member.age.between(0, 20)).then("0~20살")
+                        .when(member.age.between(21, 30)).then("21~30살")
+                        .otherwise("기타"))
+                .from(member)
+                .fetch();
+
+        //then
+        assertThat(result).containsExactly("0~20살", "0~20살", "21~30살", "기타");
+    }
+
+    /**
+     * 0 ~ 30살이 아닌 회원을 가장 먼저 출력
+     * 0 ~ 20살 회원 출력
+     * 21 ~ 30살 회원 출력
+     */
+    @Test
+    void complexCaseUseOrderBy() {
+        //given
+        NumberExpression<Integer> rankPath = new CaseBuilder()
+                .when(member.age.between(0, 20)).then(2)
+                .when(member.age.between(21, 30)).then(1)
+                .otherwise(3);
+        //when
+        List<Tuple> result = query
+                .select(member.age, rankPath)
+                .from(member)
+                .orderBy(rankPath.desc())
+                .fetch();
+
+        //then
+        for (Tuple tuple : result) {
+            System.out.println("age = " + tuple.get(member.age) + ", rank : " + tuple.get(rankPath));
         }
     }
 }
