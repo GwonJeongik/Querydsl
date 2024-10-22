@@ -543,4 +543,29 @@ public class QuerydslBasicTest {
         //then
         assertThat(result).isEqualTo("member1_10");
     }
+
+    @Test
+    void basic_projection() {
+        //when
+        String result = query
+                .select(member.name)
+                .from(member)
+                .fetchFirst();
+
+        //then
+        assertThat(result).isEqualTo("member1");
+    }
+
+    @Test
+    void tuple_projection() {
+        //when
+        Tuple tuple = query
+                .select(member.name, member.age)
+                .from(member)
+                .fetchFirst();
+
+        //then
+        assertThat(tuple.get(member.name)).isEqualTo("member1");
+        assertThat(tuple.get(member.age)).isEqualTo(10);
+    }
 }
