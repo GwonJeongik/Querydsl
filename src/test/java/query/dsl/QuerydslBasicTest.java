@@ -2,6 +2,8 @@ package query.dsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import query.dsl.dto.MemberDto;
 import query.dsl.entity.Member;
 import query.dsl.entity.QMember;
 import query.dsl.entity.Team;
@@ -568,4 +571,77 @@ public class QuerydslBasicTest {
         assertThat(tuple.get(member.name)).isEqualTo("member1");
         assertThat(tuple.get(member.age)).isEqualTo(10);
     }
+
+    @Test
+    void property_projections() {
+        //when
+        List<MemberDto> results = query
+                .select(Projections.bean(MemberDto.class,
+                        member.name,
+                        member.age))
+                .from(member)
+                .fetch();
+
+        //then
+        for (MemberDto result : results) {
+            System.out.println("result = " + result);
+        }
+    }
+
+
+    @Test
+    void field_projections() {
+        //when
+        List<MemberDto> results =
+                query.select(Projections.fields(MemberDto.class,
+                                member.name,
+                                member.age))
+                        .from(member)
+                        .fetch();
+
+        //then
+        for (MemberDto result : results) {
+            System.out.println("result = " + result);
+        }
+    }
+
+
+    @Test
+    void constructor_Projections() {
+        //when
+        List<MemberDto> results =
+                query.select(Projections.constructor(MemberDto.class,
+                                member.name,
+                                member.age))
+                        .from(member)
+                        .fetch();
+
+        //then
+        for (MemberDto result : results) {
+            System.out.println("result = " + result);
+        }
+    }
+
+    @Test
+    void alias_projections() {
+        //given
+        QMember memberSub = new QMember("memberSub");
+        //when
+        List<MemberDto> result = query
+                .select(Projections.fields(MemberDto.class,
+                        member.name,
+                        Expressions.as(
+                                JPAExpressions
+                                        .select(memberSub.age.max())
+                                        .from(memberSub), "age")
+                ))
+                .from(member)
+                .fetch();
+
+        //then
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+
 }
